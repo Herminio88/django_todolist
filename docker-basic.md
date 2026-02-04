@@ -217,13 +217,13 @@ docker network ls
 Criar rede:
 
 ```bash
-docker network create minha-rede
+docker network create webapp-network
 ```
 
 Usar rede:
 
 ```bash
-docker run --network minha-rede nginx
+docker run --network webapp-network nginx
 ```
 
 Comunicação entre containers depende da rede Docker.
@@ -425,16 +425,63 @@ docker pull your_username/django_todolist:0.0.0
 #### Exemplo de registry local:
 
 ```bash
-docker run -d -p 5000:5000 registry:2
+docker run --name=registry2 -d -p 5001:5000 \
+  --network webapp-network \
+  -e REGISTRY_HTTP_HEADERS_Access-Control-Allow-Origin="['http://localhost:8083']" \
+  -e REGISTRY_HTTP_HEADERS_Access-Control-Allow-Methods='[HEAD,GET,OPTIONS,DELETE]' \
+  -e REGISTRY_HTTP_HEADERS_Access-Control-Allow-Headers='[Authorization,Accept,Cache-Control]' \
+  -e REGISTRY_HTTP_HEADERS_Access-Control-Expose-Headers='[Docker-Content-Digest]' \
+  -e REGISTRY_HTTP_HEADERS_Access-Control-Allow-Credentials='[true]' \
+  -e REGISTRY_STORAGE_DELETE_ENABLED='true' \
+  registry:2
 ```
 
 Push:
 
 ```bash
 docker tag django_todolist:0.0.0 localhost:5000/django_todolist:1.0
-docker push localhost:5000/django_todolist:1.0
+docker push localhost:5001/django_todolist:1.0
 docker pull localhost:5000/django_todolist:1.0
 ```
+Listar imagens do registry no registry local
+```bash
+curl http://localhost:5000/v2/_catalog
+````
+Resposta:
+```bash
+{
+  "repositories": [
+    "django_todolist"
+  ]
+}
+```
+
+Listar tags de uma imagem:
+```bash
+http://localhost:5000/v2/django_todolist/tags/list
+```
+Resposta:
+```bash
+{
+  "name": "django_todolist",
+  "tags": [
+    "1.1",
+    "1.0"
+  ]
+}
+```
+
+Docker Registry UI (joxit):
+```bash
+docker run --rm --name=registry-ui -d \
+  -p 8080:80 \
+  --network webapp-network \
+  -e REGISTRY_TITLE="Local Docker Registry" \
+  -e REGISTRY_URL=http://localhost:5000 \
+  joxit/docker-registry-ui
+```
+
+Aceder registry UI na porta `8080`: http://localhost:8080
 
 ---
 
