@@ -20,8 +20,14 @@ cp .env.example .env
 python -m venv venv
 ```
 2 - Ativar ambiente virtual:
+- Linux/Mac:
 ```bash
 source venv/bin/activate
+```
+- Windows (Command Prompt):
+```bash
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+.\venv\Scripts\activate
 ```
 3 - Instalar dependências:
 ```bash
